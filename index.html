@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Taim Games</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:#0b1020;color:#f5f7ff}
+header{padding:28px 18px;text-align:center;background:linear-gradient(135deg,#151d3b,#0b1020);border-bottom:1px solid #293252}
+h1{margin:0;font-size:42px}.sub{color:#aab3d0;margin:7px 0 0}.wrap{max-width:1000px;margin:auto;padding:22px}
+.games{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}
+.card{background:#141b33;border:1px solid #2a355a;border-radius:18px;padding:20px;cursor:pointer;transition:.15s}.card:hover{transform:translateY(-3px);border-color:#6d7cff}
+.icon{font-size:38px}.card h2{margin:8px 0 4px}.card p{color:#aab3d0;margin:0}
+#game{margin-top:22px;background:#141b33;border:1px solid #2a355a;border-radius:18px;padding:22px;min-height:330px;display:none}
+button{border:0;border-radius:12px;padding:12px 18px;background:#6d7cff;color:white;font-weight:800;cursor:pointer;font-size:16px}
+.back{background:#293252;margin-bottom:15px}.big{text-align:center;font-size:58px;font-weight:900;margin:30px 0}
+.center{text-align:center}.arena{height:230px;border:2px dashed #344064;border-radius:14px;position:relative;overflow:hidden}.target{position:absolute;width:48px;height:48px;border-radius:50%;background:#6d7cff;border:0}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;max-width:330px;margin:15px auto}.tile{aspect-ratio:1;background:#293252;border-radius:9px;display:grid;place-items:center;font-weight:900;font-size:22px}
+canvas{max-width:100%;background:#0b1020;border-radius:12px}
+footer{text-align:center;color:#7782a5;padding:30px}
+</style>
+</head>
+<body>
+<header><h1>🎮 Taim Games</h1><p class="sub">Pick a game. Have fun.</p></header>
+<main class="wrap">
+<section id="home" class="games">
+<div class="card" data-game="clicker"><div class="icon">👆</div><h2>Clicker</h2><p>How fast can you stack clicks?</p></div>
+<div class="card" data-game="reaction"><div class="icon">⚡</div><h2>Reaction Test</h2><p>Test your reaction speed.</p></div>
+<div class="card" data-game="snake"><div class="icon">🐍</div><h2>Snake</h2><p>Eat food and don't crash.</p></div>
+<div class="card" data-game="2048"><div class="icon">🧩</div><h2>2048</h2><p>Combine tiles to reach 2048.</p></div>
+</section>
+<section id="game"></section>
+</main>
+<footer>Made with ❤️ for Taim Games</footer>
+<script>
+const home=document.querySelector('#home'), game=document.querySelector('#game');
+function openGame(title,body){home.style.display='none';game.style.display='block';game.innerHTML='<button class="back" onclick="showHome()">← Games</button>'+body}
+function showHome(){game.style.display='none';home.style.display='grid'}
+document.querySelectorAll('.card').forEach(c=>c.onclick=()=>launch(c.dataset.game));
+
+function launch(type){
+ if(type==='clicker') openGame('Clicker',`<div class="center"><h2>👆 Clicker</h2><div class="big" id="count">0</div><button id="click">CLICK!</button></div>`);
+ if(type==='reaction') openGame('Reaction',`<div class="center"><h2>⚡ Reaction Test</h2><p id="msg">Press Start, then wait for GO.</p><div class="big" id="rt">—</div><button id="start">Start</button></div>`);
+ if(type==='snake') openSnake();
+ if(type==='2048') open2048();
+ if(type==='clicker') document.querySelector('#click').onclick=()=>count.textContent=+count.textContent+1;
+ if(type==='reaction') reaction();
+}
+function reaction(){
+ let state='ready',start,t;
+ const b=document.querySelector('#start'),m=document.querySelector('#msg'),o=document.querySelector('#rt');
+ b.onclick=()=>{if(state==='ready'){state='wait';m.textContent='Wait...';b.textContent='WAIT';t=setTimeout(()=>{state='go';start=performance.now();m.textContent='GO!';b.textContent='TAP!'},800+Math.random()*2200)}
+ else if(state==='wait'){clearTimeout(t);state='ready';m.textContent='Too early 😭';b.textContent='Start'}
+ else{o.textContent=Math.round(performance.now()-start)+' ms';m.textContent='Nice!';state='ready';b.textContent='Start'}}
+}
+function openSnake(){
+openGame('Snake',`<div class="center"><h2>🐍 Snake</h2><p>Use the arrow keys.</p><canvas id="snake" width="360" height="360"></canvas><p>Score: <b id="ss">0</b></p><button id="sn">Start / Restart</button></div>`);
+const c=document.querySelector('#snake'),x=c.getContext('2d'),S=20,N=18;let body,dir,food,score,tick;
+function draw(){x.clearRect(0,0,360,360);x.fillStyle='#151d3b';x.fillRect(0,0,360,360);x.fillStyle='#6d7cff';body.forEach(p=>x.fillRect(p.x*S,p.y*S,S-2,S-2));x.fillStyle='#fff';x.fillRect(food.x*S,food.y*S,S-2,S-2)}
+function start(){clearInterval(tick);body=[{x:8,y:9},{x:7,y:9}];dir={x:1,y:0};food={x:13,y:9};score=0;ss.textContent=0;draw();tick=setInterval(step,110)}
+function step(){let h={x:body[0].x+dir.x,y:body[0].y+dir.y};if(h.x<0||h.y<0||h.x>=N||h.y>=N||body.some(p=>p.x===h.x&&p.y===h.y)){clearInterval(tick);return}body.unshift(h);if(h.x===food.x&&h.y===food.y){score++;ss.textContent=score;do food={x:Math.floor(Math.random()*N),y:Math.floor(Math.random()*N)};while(body.some(p=>p.x===food.x&&p.y===food.y))}else body.pop();draw()}
+document.onkeydown=e=>{if(!document.querySelector('#snake'))return;if(e.key==='ArrowUp'&&dir.y!==1)dir={x:0,y:-1};if(e.key==='ArrowDown'&&dir.y!==-1)dir={x:0,y:1};if(e.key==='ArrowLeft'&&dir.x!==1)dir={x:-1,y:0};if(e.key==='ArrowRight'&&dir.x!==-1)dir={x:1,y:0}};document.querySelector('#sn').onclick=start;start();
+}
+function open2048(){
+openGame('2048',`<div class="center"><h2>🧩 2048</h2><p>Use arrow keys or buttons.</p><div class="grid" id="board"></div><p>Score: <b id="score">0</b></p><div><button onclick="m2048('up')">⬆️</button> <button onclick="m2048('left')">⬅️</button> <button onclick="m2048('down')">⬇️</button> <button onclick="m2048('right')">➡️</button></div><br><button onclick="init2048()">Restart</button></div>`);
+init2048();
+}
+let a,sc;
+function init2048(){a=Array(16).fill(0);sc=0;addTile();addTile();draw2048()}
+function addTile(){let z=a.map((v,i)=>v?null:i).filter(i=>i!==null);if(z.length)a[z[Math.floor(Math.random()*z.length)]]=Math.random()<.9?2:4}
+function draw2048(){board.innerHTML=a.map(v=>`<div class="tile">${v||''}</div>`).join('');score.textContent=sc}
+function m2048(d){let old=a.join(),rows=[];for(let r=0;r<4;r++)rows.push(a.slice(r*4,r*4+4));if(d==='up'||d==='down')rows=rows[0].map((_,c)=>rows.map(r=>r[c]));if(d==='down')rows=rows.map(r=>r.reverse());rows=rows.map(r=>{if(d==='right'||d==='down')r=r.reverse();let o=[];r.filter(Boolean).forEach(v=>{if(o.at(-1)===v){o[o.length-1]*=2;sc+=o.at(-1)}else o.push(v)});while(o.length<4)o.push(0);return d==='right'||d==='down'?o.reverse():o});if(d==='up'||d==='down')rows=rows[0].map((_,c)=>rows.map(r=>r[c]));if(d==='down')rows=rows.map(r=>r.reverse());a=rows.flat();if(a.join()!==old)addTile();draw2048()}
+document.addEventListener('keydown',e=>{if(!game.contains(document.querySelector('#board')))return;let d={ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right'}[e.key];if(d){e.preventDefault();m2048(d)}})
+</script>
+</body>
+</html>
